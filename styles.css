@@ -119,6 +119,17 @@ body::before {
   position: relative;
   z-index: 2;
 }
+.models-wrap .md-empty-sug {
+  font: inherit;
+  font-size: .82rem;
+  color: #8ab4f8;
+  background: rgba(138,180,248,.08);
+  border: 1px solid rgba(138,180,248,.35);
+  border-radius: 999px;
+  padding: .45rem 1.1rem;
+  cursor: pointer;
+}
+.models-wrap .md-empty-sug:hover { background: rgba(138,180,248,.16); }
 .models-wrap .md-empty {
   color: var(--color-500);
   text-align: center;
