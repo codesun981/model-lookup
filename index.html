@@ -9,7 +9,12 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="bg" aria-hidden="true"></div>
+<div id="wave-bg" aria-hidden="true">
+  <canvas id="wave-canvas"></canvas>
+  <div id="wave-dim"></div>
+  <div id="wave-bottom-mask"></div>
+  <div id="wave-footer-shade"></div>
+</div>
 <main class="models-wrap">
   <div class="container">
     <div class="models-hero">
@@ -31,6 +36,7 @@
     <span>数据 <a href="https://models.dev" target="_blank" rel="noopener">models.dev</a>（每日更新） · 图标 <a href="https://icons.lobehub.com" target="_blank" rel="noopener">LobeHub Icons</a>（各品牌商标归其所有者，仅作识别性使用）</span>
   </div>
 </footer>
+<script src="wave.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
