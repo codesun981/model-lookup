@@ -161,6 +161,17 @@ body::before {
 }
 @media (max-width: 640px) {
   .models-wrap .md-stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .models-wrap { padding: 3rem 0 3rem; }
+  .models-wrap .container { padding: 0 1rem; }
+  .models-wrap .md-card { padding: 1.1rem; }
+  .models-wrap .md-stat-value { font-size: .92rem; }
+  .models-wrap .md-prov-row { flex-wrap: wrap; row-gap: .3rem; }
+  .models-wrap .md-prov-name { min-width: 0; flex: 1; }
+  .models-wrap .md-prov-id { flex: 1 1 100%; min-width: 0; order: 3; }
+  .models-wrap .md-prov-price { flex: 1 1 100%; order: 4; font-size: .78rem; }
+  .models-wrap .md-tl-pill > span { max-width: 180px; }
+  .models-wrap .md-card-title { font-size: 1.15rem; }
+  .site-footer .container { padding: 0 1rem; }
 }
 .models-wrap .md-stat {
   background: rgba(255,255,255,.04);
@@ -249,7 +260,7 @@ body::before {
   margin-bottom: .5rem;
 }
 .models-wrap .md-labs.md-collapsed {
-  max-height: var(--lab-clamp, 68px);
+  max-height: var(--lab-clamp, 34px);
 }
 .models-wrap .md-labs-toggle {
   display: block;
