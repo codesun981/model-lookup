@@ -242,17 +242,24 @@ body::before {
 }
 .models-wrap .md-labs {
   display: flex;
+  flex-wrap: wrap;
   gap: .45rem;
-  overflow-x: auto;
-  padding-bottom: .4rem;
-  margin-bottom: 1.1rem;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 48px), transparent 100%);
-  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 48px), transparent 100%);
+  overflow: hidden;
+  margin-bottom: .5rem;
 }
-.models-wrap .md-labs::-webkit-scrollbar {
-  display: none;
+.models-wrap .md-labs.md-collapsed {
+  max-height: var(--lab-clamp, 68px);
+}
+.models-wrap .md-labs-toggle {
+  display: block;
+  margin: 0 0 1rem auto;
+  font: inherit;
+  font-size: .75rem;
+  color: #8ab4f8;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: .1rem .2rem;
 }
 .models-wrap .md-lab-chip {
   display: inline-flex;
