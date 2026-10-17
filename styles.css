@@ -243,59 +243,82 @@ body::before {
 .models-wrap .md-tl-head {
   font-size: .85rem;
   color: #9aa0a6;
-  margin: .4rem 0 1rem;
+  margin: .4rem 0 1.2rem;
 }
 .models-wrap .md-tl-head b { color: #e6dcff; }
+.models-wrap .md-tl-day {
+  position: relative;
+  padding-left: 22px;
+  margin-bottom: 1.5rem;
+}
+.models-wrap .md-tl-day::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 10px;
+  bottom: -6px;
+  width: 2px;
+  border-radius: 2px;
+  background: rgba(255,255,255,.09);
+}
+.models-wrap .md-tl-day:last-child::before { bottom: 10px; }
 .models-wrap .md-tl-date {
-  font-size: .8rem;
+  position: relative;
+  font-size: .82rem;
   font-weight: 600;
-  color: #c9bdf2;
-  margin: 1.2rem 0 .5rem;
+  color: #d8d2ec;
+  margin: 0 0 .65rem;
   display: flex;
   align-items: center;
   gap: .5rem;
+}
+.models-wrap .md-tl-date i {
+  position: absolute;
+  left: -22px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #14141f;
+  border: 2px solid #8ab4f8;
 }
 .models-wrap .md-tl-date span {
   font-size: .7rem;
   font-weight: 400;
   color: #8ab4f8;
-  border: 1px solid rgba(138,180,248,.35);
-  border-radius: 999px;
-  padding: 1px 8px;
 }
-.models-wrap .md-tl-row {
+.models-wrap .md-tl-pills {
   display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+.models-wrap .md-tl-pill {
+  display: inline-flex;
   align-items: center;
-  gap: .8rem;
-  padding: .6rem .8rem;
-  border: 1px solid rgba(255,255,255,.07);
-  border-radius: 12px;
-  margin-bottom: .5rem;
+  gap: .45rem;
+  padding: .3rem .85rem .3rem .38rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.03);
+  color: #e8e8e8;
+  font: inherit;
+  font-size: .8rem;
   cursor: pointer;
-  background: rgba(255,255,255,.02);
 }
-.models-wrap .md-tl-row:hover {
-  border-color: rgba(196,181,253,.4);
-  background: rgba(196,181,253,.06);
+.models-wrap .md-tl-pill:hover {
+  border-color: rgba(196,181,253,.55);
+  background: rgba(196,181,253,.08);
 }
-.models-wrap .md-tl-row .md-card-icon {
-  width: 30px;
-  height: 30px;
+.models-wrap .md-tl-pill .md-card-icon {
+  width: 20px;
+  height: 20px;
+  padding: 2px;
 }
-.models-wrap .md-tl-main { flex: 1; min-width: 0; }
-.models-wrap .md-tl-name {
-  font-size: .92rem;
-  color: #f0f0f0;
+.models-wrap .md-tl-pill > span {
   white-space: nowrap;
+  max-width: 230px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.models-wrap .md-tl-sub {
-  font-size: .75rem;
-  color: #9aa0a6;
-  margin-top: 2px;
-}
-.models-wrap .md-tl-go { color: #8ab4f8; font-size: 1rem; }
 .models-wrap .md-badge-sm {
   font-size: .65rem;
   padding: 1px 8px;
