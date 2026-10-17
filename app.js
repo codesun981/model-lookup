@@ -14,6 +14,8 @@
   var index = [];
   var ICON_MAP = {};
   var lastGroups = [];
+  var timelineGroups = [];
+  var curTab = 'search';
   var lastQuery = '';
   var curPage = 1;
 
@@ -81,6 +83,26 @@
       '" alt="" loading="lazy" onerror="this.style.display=\'none\'">';
   }
 
+  function localDay(offset) {
+    var d = new Date(Date.now() + (offset || 0) * 864e5);
+    var p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+  function buildTimeline() {
+    var groups = new Map();
+    index.forEach(function (e) {
+      var g = groups.get(e.norm);
+      if (!g) { g = { entries: [], latest: '', canon: e, providers: new Set() }; groups.set(e.norm, g); }
+      g.entries.push(e);
+      g.providers.add(e.provider);
+      var rd = e.m.release_date || '';
+      if (rd > g.latest) g.latest = rd;
+    });
+    var cut = localDay(-30);
+    timelineGroups = [];
+    groups.forEach(function (g) { if (g.latest >= cut) timelineGroups.push(g); });
+    timelineGroups.sort(function (a, b) { return b.latest < a.latest ? -1 : b.latest > a.latest ? 1 : 0; });
+  }
   function buildIndex(data) {
     index = [];
     Object.keys(data).forEach(function (pid) {
@@ -164,6 +186,39 @@
     lastQuery = q;
     curPage = 1;
     renderPage();
+  }
+  function renderTimeline() {
+    clearPager();
+    if (!timelineGroups.length) {
+      $results.innerHTML = '<p class="md-empty">近 30 天暂无新模型发布</p>';
+      return;
+    }
+    var today = localDay(0), yest = localDay(-1), html = '', lastDate = '';
+    timelineGroups.forEach(function (g) {
+      if (g.latest !== lastDate) {
+        lastDate = g.latest;
+        var tag = lastDate === today ? '今天' : lastDate === yest ? '昨天' : lastDate.slice(5).replace('-', '/');
+        html += '<div class="md-tl-date">' + esc(lastDate) + '<span>' + esc(tag) + '</span></div>';
+      }
+      var e = g.canon;
+      var st = e.m.status === 'deprecated' ? '<span class="md-badge md-badge-danger md-badge-sm">已废弃</span>'
+        : e.m.status === 'beta' ? '<span class="md-badge md-badge-warn md-badge-sm">Beta</span>' : '';
+      html += '<div class="md-tl-row" data-norm="' + esc(e.norm) + '">' + imgTagTitle(e) +
+        '<div class="md-tl-main"><div class="md-tl-name">' + esc(e.name) + ' ' + st + '</div>' +
+        '<div class="md-tl-sub">' + g.providers.size + ' 个渠道</div></div>' +
+        '<span class="md-tl-go">\u2192</span></div>';
+    });
+    $results.innerHTML = '<div class="md-tl-head">近 30 天新发布 <b>' + timelineGroups.length + '</b> 个模型</div>' + html;
+  }
+  function setTab(t) {
+    curTab = t;
+    var tabs = document.querySelectorAll('.md-tab');
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].classList.toggle('md-tab-active', tabs[i].getAttribute('data-tab') === t);
+    }
+    if (t === 'timeline') { renderTimeline(); return; }
+    if ($input.value.trim()) render(search($input.value), $input.value);
+    else $results.innerHTML = '<p class="md-empty">在上方输入关键词开始搜索</p>';
   }
 
   function renderPage() {
@@ -257,7 +312,26 @@
   var timer = null;
   $input.addEventListener('input', function () {
     clearTimeout(timer);
-    timer = setTimeout(function () { render(search($input.value), $input.value); }, 180);
+    timer = setTimeout(function () {
+      if (curTab !== 'search') setTab('search');
+      render(search($input.value), $input.value);
+    }, 180);
+  });
+  $results.addEventListener('click', function (ev) {
+    var row = ev.target.closest ? ev.target.closest('.md-tl-row') : null;
+    if (!row || curTab !== 'timeline') return;
+    var norm = row.getAttribute('data-norm');
+    var g = null;
+    for (var i = 0; i < timelineGroups.length; i++) {
+      if (timelineGroups[i].canon.norm === norm) { g = timelineGroups[i]; break; }
+    }
+    if (!g) return;
+    $input.value = g.canon.name;
+    setTab('search');
+    render(search(g.canon.name), g.canon.name);
+  });
+  document.querySelectorAll('.md-tab').forEach(function (btn) {
+    btn.addEventListener('click', function () { setTab(btn.getAttribute('data-tab')); });
   });
 
   function setStatus(t) { $status.textContent = t; }
@@ -301,6 +375,7 @@
       }
     }
     buildIndex(data);
+    buildTimeline();
     setStatus('模型库已就绪（' + index.length + ' 个条目，数据更新于 ' + ver.slice(0, 10) + '）');
     if ($input.value.trim()) render(search($input.value), $input.value);
   }
