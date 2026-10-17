@@ -196,6 +196,31 @@ body::before {
   padding: 3px 12px;
   letter-spacing: 1px;
 }
+.models-wrap .md-badge-danger {
+  color: #ff8585;
+  border-color: rgba(255,100,100,.5);
+  background: rgba(255,70,70,.10);
+}
+.models-wrap .md-badge-warn {
+  color: #ffd479;
+  border-color: rgba(255,200,90,.45);
+  background: rgba(255,180,60,.08);
+}
+.models-wrap .md-cache {
+  font-size: .72rem;
+  color: #9aa0a6;
+  margin-left: .35rem;
+  white-space: nowrap;
+}
+.models-wrap .md-doc-link {
+  color: #8ab4f8;
+  margin-left: .35rem;
+  display: inline-flex;
+  vertical-align: -1px;
+}
+.models-wrap .md-doc-link:hover {
+  color: #c9dcff;
+}
 .models-wrap .md-prov-list {
   border-top: 1px solid rgba(255,255,255,.08);
   padding-top: 0.75rem;
