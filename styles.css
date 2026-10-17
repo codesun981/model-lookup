@@ -56,6 +56,12 @@ body::before {
   padding: 8px 20px;
   margin-bottom: 1.5rem;
 }
+.models-wrap .site-logo {
+  width: 46px;
+  height: 46px;
+  vertical-align: -9px;
+  margin-right: .6rem;
+}
 .models-wrap .models-title {
   font-size: clamp(2.2rem, 6vw, 3.5rem);
   font-weight: 400;
