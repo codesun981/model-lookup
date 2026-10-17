@@ -106,15 +106,15 @@
     for (var i = 0; i < el.children.length; i++) {
       var tp = el.children[i].offsetTop;
       if (tp !== last) { tops.push(tp); last = tp; }
-      if (tops.length === 3) break;
+      if (tops.length === 2) break;
     }
-    if (tops.length < 3) {
+    if (tops.length < 2) {
       el.classList.remove('md-collapsed');
       el.style.removeProperty('--lab-clamp');
       t.style.display = 'none';
       return;
     }
-    el.style.setProperty('--lab-clamp', Math.max(0, tops[2] - 1) + 'px');
+    el.style.setProperty('--lab-clamp', Math.max(0, tops[1] - 1) + 'px');
     t.style.display = '';
     t.textContent = '\u5c55\u5f00\u5168\u90e8 \u2304';
   }
