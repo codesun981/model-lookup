@@ -246,7 +246,13 @@ body::before {
   overflow-x: auto;
   padding-bottom: .4rem;
   margin-bottom: 1.1rem;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 48px), transparent 100%);
+  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 48px), transparent 100%);
+}
+.models-wrap .md-labs::-webkit-scrollbar {
+  display: none;
 }
 .models-wrap .md-lab-chip {
   display: inline-flex;
