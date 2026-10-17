@@ -95,6 +95,28 @@
       html += '<button class="md-lab-chip" data-lab="' + L[0] + '"><img src="' + labIcon(L[0]) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' + esc(L[1]) + '</button>';
     });
     el.innerHTML = html;
+    clampLabs();
+  }
+  function clampLabs() {
+    var el = document.getElementById('lab-row');
+    var t = document.getElementById('lab-toggle');
+    if (!el || !t) return;
+    el.classList.add('md-collapsed');
+    var tops = [], last = -1;
+    for (var i = 0; i < el.children.length; i++) {
+      var tp = el.children[i].offsetTop;
+      if (tp !== last) { tops.push(tp); last = tp; }
+      if (tops.length === 3) break;
+    }
+    if (tops.length < 3) {
+      el.classList.remove('md-collapsed');
+      el.style.removeProperty('--lab-clamp');
+      t.style.display = 'none';
+      return;
+    }
+    el.style.setProperty('--lab-clamp', Math.max(0, tops[2] - 1) + 'px');
+    t.style.display = '';
+    t.textContent = '\u5c55\u5f00\u5168\u90e8 \u2304';
   }
   function setLab(id) {
     curLab = id;
@@ -435,6 +457,21 @@
   if (labRow) labRow.addEventListener('click', function (ev) {
     var chip = ev.target.closest ? ev.target.closest('.md-lab-chip') : null;
     if (chip) setLab(chip.getAttribute('data-lab'));
+  });
+  var labToggle = document.getElementById('lab-toggle');
+  if (labToggle) labToggle.addEventListener('click', function () {
+    var el = document.getElementById('lab-row');
+    if (!el) return;
+    var collapsed = el.classList.toggle('md-collapsed');
+    labToggle.textContent = collapsed ? '\u5c55\u5f00\u5168\u90e8 \u2304' : '\u6536\u8d77 \u2303';
+  });
+  var labRsz = null;
+  window.addEventListener('resize', function () {
+    if (labRsz) clearTimeout(labRsz);
+    labRsz = setTimeout(function () {
+      var el = document.getElementById('lab-row');
+      if (el && el.classList.contains('md-collapsed')) clampLabs();
+    }, 200);
   });
 
   function setStatus(t) { $status.textContent = t; }
