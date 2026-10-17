@@ -18,6 +18,96 @@
   var curTab = 'search';
   var lastQuery = '';
   var curPage = 1;
+  var LAB_ALIAS = {qwen:'alibaba', mistralai:'mistral', 'deepseek-ai':'deepseek', 'z-ai':'zhipuai', 'zai-org':'zhipuai', 'meta-llama':'meta', 'x-ai':'xai'};
+  var LABS = [
+    ['openai','OpenAI','GPT 系列，推理、代码、多模态与 agent 应用的生产级标准'],
+    ['alibaba','阿里巴巴','Qwen 系：开源与托管的多语言模型，覆盖推理、代码、视觉、音频'],
+    ['google','Google','Gemini 与 Gemma：前沿多模态推理 + 长上下文 + 开源选项'],
+    ['mistral','Mistral','开源权重研究 + 企业级部署，代码 agent 与文档智能'],
+    ['anthropic','Anthropic','Claude：可靠、可解释、可操控，擅长代码与长程 agent'],
+    ['nvidia','NVIDIA','Nemotron：开放权重，推理、RAG、安全与多模态 agent'],
+    ['deepseek','DeepSeek','高性价比的开源推理模型，代码数学强'],
+    ['zhipuai','智谱','GLM：长时 coding、终端任务、混合推理，价格激进'],
+    ['xai','xAI','Grok：工具调用、低幻觉推理、代码与媒体 API'],
+    ['meta','Meta','Llama：开放权重，多语言多模态，可定制'],
+    ['tencent','腾讯','混元：大 MoE，推理、代码、长上下文'],
+    ['minimax','MiniMax','代码 agent、办公与多模态，偏实用生产力'],
+    ['moonshotai','月之暗面','Kimi：长上下文 agent'],
+    ['perplexity','Perplexity','Sonar：搜索即模型能力，带引用回答'],
+    ['cohere','Cohere','企业级 AI：多语言、RAG、安全 agent'],
+    ['xiaomi','小米','MiMo：代码 agent 与真实世界自动化'],
+    ['poolside','Poolside','开放权重基础模型'],
+    ['sakana','Sakana AI','模型路由，多 agent 系统'],
+    ['reflection','Reflection','开放智能，稀疏 MoE'],
+    ['stepfun','阶跃星辰','Step：快速多模态 agent'],
+    ['vispark','Vispark','面向印度的多模态基础模型，1M 上下文'],
+    ['arcee-ai','Arcee AI','开放权重语言模型，高效推理']
+  ];
+  var LAB_ICON = {sakana:'icons/sakana-color.svg'};
+  var curLab = '';
+  var listHeadHtml = '';
+  function labIcon(id) { return LAB_ICON[id] || ('icons/' + id + '.svg'); }
+  var LAB_BRAND = [['qwen','alibaba'],['deepseek','deepseek'],['claude','anthropic'],['gemini','google'],['gemma','google'],
+    ['gpt','openai'],['chatgpt','openai'],['llama','meta'],['mistral','mistral'],['mixtral','mistral'],['ministral','mistral'],
+    ['grok','xai'],['kimi','moonshotai'],['glm','zhipuai'],['hunyuan','tencent'],['minimax','minimax'],['nemotron','nvidia'],
+    ['sonar','perplexity'],['cohere','cohere'],['sakana','sakana'],['reflection','reflection'],['arcee','arcee-ai'],
+    ['stepfun','stepfun'],['vispark','vispark'],['poolside','poolside'],['xiaomi','xiaomi']];
+  function labOf(e) {
+    var mid = e.id || '', pre = mid.indexOf('/') !== -1 ? mid.split('/')[0].toLowerCase() : '';
+    pre = LAB_ALIAS[pre] || pre;
+    for (var i = 0; i < LABS.length; i++) if (LABS[i][0] === pre) return pre;
+    var n = ' ' + (e.norm || '') + ' ';
+    for (var j = 0; j < LAB_BRAND.length; j++) {
+      if (n.indexOf(' ' + LAB_BRAND[j][0] + ' ') !== -1) return LAB_BRAND[j][1];
+    }
+    return '';
+  }
+  function labGroups(lab) {
+    var groups = new Map();
+    index.forEach(function (e) {
+      if (lab && labOf(e) !== lab) return;
+      var g = groups.get(e.norm);
+      if (!g) { g = { entries: [], best: 0, latest: '' }; groups.set(e.norm, g); }
+      g.entries.push([0, e]);
+      var rd = e.m.release_date || '';
+      if (rd > g.latest) g.latest = rd;
+    });
+    var arr = Array.from(groups.values());
+    arr.sort(function (a, b) { return (b.latest < a.latest ? -1 : b.latest > a.latest ? 1 : 0); });
+    return arr;
+  }
+  function labHead(id) {
+    if (!id) return '';
+    var L = null;
+    for (var i = 0; i < LABS.length; i++) if (LABS[i][0] === id) L = LABS[i];
+    if (!L) return '';
+    var n = labGroups(id).length;
+    return '<div class="md-lab-head"><img class="md-card-icon" src="' + labIcon(id) + '" alt="" onerror="this.style.display=\'none\'">' +
+      '<div><div class="md-lab-name">' + esc(L[1]) + ' <span style="color:#9aa0a6;font-weight:400;font-size:.78rem">' + n + ' 个模型</span></div>' +
+      '<div class="md-lab-desc">' + esc(L[2]) + '</div></div>' +
+      '<button class="md-lab-clear" data-clearlab="1">× 清除</button></div>';
+  }
+  function buildLabChips() {
+    var el = document.getElementById('lab-row');
+    if (!el) return;
+    var html = '<button class="md-lab-chip md-lab-active" data-lab="">全部</button>';
+    LABS.forEach(function (L) {
+      html += '<button class="md-lab-chip" data-lab="' + L[0] + '"><img src="' + labIcon(L[0]) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' + esc(L[1]) + '</button>';
+    });
+    el.innerHTML = html;
+  }
+  function setLab(id) {
+    curLab = id;
+    var chips = document.querySelectorAll('.md-lab-chip');
+    for (var i = 0; i < chips.length; i++) chips[i].classList.toggle('md-lab-active', chips[i].getAttribute('data-lab') === id);
+    buildTimeline();
+    listHeadHtml = labHead(id);
+    if (curTab === 'timeline') { renderTimeline(); return; }
+    var q = $input.value.trim();
+    if (q) render(search(q), q);
+    else if (id) render(labGroups(id), 'lab:' + id);
+    else { listHeadHtml = ''; $results.innerHTML = '<p class="md-empty">输入模型名称开始搜索，或点选上方 lab 浏览该厂商模型</p>'; }
+  }
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -92,15 +182,21 @@
     var groups = new Map();
     index.forEach(function (e) {
       var g = groups.get(e.norm);
-      if (!g) { g = { entries: [], latest: '', canon: e, providers: new Set() }; groups.set(e.norm, g); }
+      if (!g) { g = { entries: [], latest: '', canon: e, providers: new Set(), labs: new Set() }; groups.set(e.norm, g); }
       g.entries.push(e);
       g.providers.add(e.provider);
+      var lb0 = labOf(e);
+      if (lb0) g.labs.add(lb0);
       var rd = e.m.release_date || '';
       if (rd > g.latest) g.latest = rd;
     });
     var cut = localDay(-30);
     timelineGroups = [];
-    groups.forEach(function (g) { if (g.latest >= cut) timelineGroups.push(g); });
+    groups.forEach(function (g) {
+      if (g.latest < cut) return;
+      if (curLab && !g.labs.has(curLab)) return;
+      timelineGroups.push(g);
+    });
     timelineGroups.sort(function (a, b) { return b.latest < a.latest ? -1 : b.latest > a.latest ? 1 : 0; });
   }
   function buildIndex(data) {
@@ -131,6 +227,7 @@
     var hits = [];
     for (var i = 0; i < index.length; i++) {
       var e = index[i];
+      if (curLab && labOf(e) !== curLab) continue;
       var ok = true;
       for (var t = 0; t < tokens.length; t++) {
         if (e.hay.indexOf(tokens[t]) === -1) { ok = false; break; }
@@ -216,8 +313,10 @@
       tabs[i].classList.toggle('md-tab-active', tabs[i].getAttribute('data-tab') === t);
     }
     if (t === 'timeline') { renderTimeline(); return; }
+    listHeadHtml = labHead(curLab);
     if ($input.value.trim()) render(search($input.value), $input.value);
-    else $results.innerHTML = '<p class="md-empty">在上方输入关键词开始搜索</p>';
+    else if (curLab) render(labGroups(curLab), 'lab:' + curLab);
+    else $results.innerHTML = '<p class="md-empty">输入模型名称开始搜索，或点选上方 lab 浏览该厂商模型</p>';
   }
 
   function renderPage() {
@@ -233,7 +332,7 @@
     var totalPages = Math.max(1, Math.ceil(lastGroups.length / PAGE_SIZE));
     if (curPage > totalPages) curPage = totalPages;
     var start = (curPage - 1) * PAGE_SIZE;
-    $results.innerHTML = renderCards(lastGroups.slice(start, start + PAGE_SIZE));
+    $results.innerHTML = listHeadHtml + renderCards(lastGroups.slice(start, start + PAGE_SIZE));
     if (totalPages > 1) buildPager(totalPages);
   }
 
@@ -317,6 +416,7 @@
     }, 180);
   });
   $results.addEventListener('click', function (ev) {
+    if (ev.target.closest && ev.target.closest('[data-clearlab]')) { setLab(''); return; }
     var row = ev.target.closest ? ev.target.closest('.md-tl-pill') : null;
     if (!row || curTab !== 'timeline') return;
     var norm = row.getAttribute('data-norm');
@@ -327,10 +427,14 @@
     if (!g) return;
     $input.value = g.canon.name;
     setTab('search');
-    render(search(g.canon.name), g.canon.name);
   });
   document.querySelectorAll('.md-tab').forEach(function (btn) {
     btn.addEventListener('click', function () { setTab(btn.getAttribute('data-tab')); });
+  });
+  var labRow = document.getElementById('lab-row');
+  if (labRow) labRow.addEventListener('click', function (ev) {
+    var chip = ev.target.closest ? ev.target.closest('.md-lab-chip') : null;
+    if (chip) setLab(chip.getAttribute('data-lab'));
   });
 
   function setStatus(t) { $status.textContent = t; }
@@ -374,6 +478,7 @@
       }
     }
     buildIndex(data);
+    buildLabChips();
     buildTimeline();
     setStatus('模型库已就绪（' + index.length + ' 个条目，数据更新于 ' + ver.slice(0, 10) + '）');
     if ($input.value.trim()) render(search($input.value), $input.value);
