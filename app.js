@@ -57,7 +57,13 @@
   // 卡片标题图标：取模型厂商（模型 id 的 vendor 前缀，如 anthropic/claude-x -> anthropic），
   // 而不是分组内排第一的渠道；厂商无图标时回退到渠道图标
   var VENDOR_ALIAS = {mistralai: 'mistral', 'deepseekai': 'deepseek', zaiorg: 'zai'};
+  // 模型家族图标优先于公司图标（如 Claude 模型用 Claude 标而非 Anthropic 公司标）
+  var MODEL_ICONS = [[/claude/i, 'icons/claude-color.svg'], [/gemini/i, 'icons/gemini-color.svg']];
   function titleIconFor(canon) {
+    var label = (canon.name || '') + ' ' + (canon.id || '');
+    for (var i = 0; i < MODEL_ICONS.length; i++) {
+      if (MODEL_ICONS[i][0].test(label)) return MODEL_ICONS[i][1];
+    }
     var mid = canon.id || '';
     var key = mid.indexOf('/') !== -1
       ? mid.split('/')[0].toLowerCase().replace(/[^a-z0-9]/g, '') : '';
