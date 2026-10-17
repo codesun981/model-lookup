@@ -193,21 +193,20 @@
       $results.innerHTML = '<p class="md-empty">近 30 天暂无新模型发布</p>';
       return;
     }
-    var today = localDay(0), yest = localDay(-1), html = '', lastDate = '';
+    var today = localDay(0), yest = localDay(-1), html = '', lastDate = '', dayOpen = false;
     timelineGroups.forEach(function (g) {
       if (g.latest !== lastDate) {
+        if (dayOpen) html += '</div></div>';
         lastDate = g.latest;
         var tag = lastDate === today ? '今天' : lastDate === yest ? '昨天' : lastDate.slice(5).replace('-', '/');
-        html += '<div class="md-tl-date">' + esc(lastDate) + '<span>' + esc(tag) + '</span></div>';
+        html += '<div class="md-tl-day"><div class="md-tl-date"><i></i>' + esc(lastDate) + '<span>' + esc(tag) + '</span></div><div class="md-tl-pills">';
+        dayOpen = true;
       }
       var e = g.canon;
-      var st = e.m.status === 'deprecated' ? '<span class="md-badge md-badge-danger md-badge-sm">已废弃</span>'
-        : e.m.status === 'beta' ? '<span class="md-badge md-badge-warn md-badge-sm">Beta</span>' : '';
-      html += '<div class="md-tl-row" data-norm="' + esc(e.norm) + '">' + imgTagTitle(e) +
-        '<div class="md-tl-main"><div class="md-tl-name">' + esc(e.name) + ' ' + st + '</div>' +
-        '<div class="md-tl-sub">' + g.providers.size + ' 个渠道</div></div>' +
-        '<span class="md-tl-go">\u2192</span></div>';
+      html += '<button class="md-tl-pill" data-norm="' + esc(e.norm) + '">' + imgTagTitle(e) +
+        '<span>' + esc(e.name) + '</span></button>';
     });
+    if (dayOpen) html += '</div></div>';
     $results.innerHTML = '<div class="md-tl-head">近 30 天新发布 <b>' + timelineGroups.length + '</b> 个模型</div>' + html;
   }
   function setTab(t) {
@@ -318,7 +317,7 @@
     }, 180);
   });
   $results.addEventListener('click', function (ev) {
-    var row = ev.target.closest ? ev.target.closest('.md-tl-row') : null;
+    var row = ev.target.closest ? ev.target.closest('.md-tl-pill') : null;
     if (!row || curTab !== 'timeline') return;
     var norm = row.getAttribute('data-norm');
     var g = null;
