@@ -241,6 +241,7 @@ body::before {
   color: #e6dcff;
 }
 .models-wrap .md-labs {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   gap: .45rem;
