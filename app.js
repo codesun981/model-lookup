@@ -230,9 +230,11 @@
       Object.keys(models).forEach(function (mid) {
         var m = models[mid];
         var name = m.name || mid;
+        var hay = (name + ' ' + mid + ' ' + pid + ' ' + pname).toLowerCase();
         index.push({
           name: name, id: mid, provider: pid, providerName: pname, doc: prov.doc || '',
-          hay: (name + ' ' + mid).toLowerCase(),
+          hay: hay,
+          words: hay.split(/[^a-z0-9]+/).filter(function (w) { return w.length >= 4; }),
           nameLower: name.toLowerCase(),
           norm: normName(name),
           m: m
@@ -241,39 +243,105 @@
     });
   }
 
+  var CN_ALIAS = {
+    '智谱': 'glm', '豆包': 'doubao', '字节': 'doubao', '字节跳动': 'doubao',
+    '阿里': 'qwen', '阿里巴巴': 'qwen', '通义': 'qwen', '通义千问': 'qwen',
+    '月之暗面': 'kimi', '深度求索': 'deepseek', '幻方': 'deepseek',
+    '腾讯': 'hunyuan', '混元': 'hunyuan',
+    '百度': 'ernie', '文心': 'ernie', '文心一言': 'ernie',
+    '华为': 'pangu', '盘古': 'pangu',
+    '讯飞': 'spark', '星火': 'spark', '科大讯飞': 'spark',
+    '百川': 'baichuan', '百川智能': 'baichuan',
+    '零一万物': 'yi', '面壁': 'minicpm', '面壁智能': 'minicpm',
+    '阶跃星辰': 'step', '跃问': 'step', '小米': 'mimo',
+    '谷歌': 'gemini', '微软': 'phi', '英伟达': 'nemotron', '马斯克': 'grok',
+    '思考': 'thinking', '推理': 'reasoning', '视觉': 'vision', '图像': 'vision'
+  };
+  var CN_KEYS = Object.keys(CN_ALIAS).sort(function (a, b) { return b.length - a.length; });
+  function tokenAlts(t) {
+    var alts = [t];
+    for (var i = 0; i < CN_KEYS.length; i++) {
+      if (t.indexOf(CN_KEYS[i]) !== -1) {
+        var ex = CN_ALIAS[CN_KEYS[i]];
+        if (alts.indexOf(ex) === -1) alts.push(ex);
+        break;
+      }
+    }
+    return alts;
+  }
+  function levBound(a, b, maxD) {
+    var m = a.length, n = b.length;
+    if (Math.abs(m - n) > maxD) return maxD + 1;
+    var prev = new Array(n + 1), cur = new Array(n + 1), i, j;
+    for (j = 0; j <= n; j++) prev[j] = j;
+    for (i = 1; i <= m; i++) {
+      cur[0] = i;
+      var rowMin = i, ai = a.charCodeAt(i - 1);
+      for (j = 1; j <= n; j++) {
+        var cost = ai === b.charCodeAt(j - 1) ? 0 : 1;
+        var v = prev[j] + 1, v2 = cur[j - 1] + 1, v3 = prev[j - 1] + cost;
+        if (v2 < v) v = v2;
+        if (v3 < v) v = v3;
+        cur[j] = v;
+        if (v < rowMin) rowMin = v;
+      }
+      if (rowMin > maxD) return maxD + 1;
+      var tmp = prev; prev = cur; cur = tmp;
+    }
+    return prev[n];
+  }
+  // 返回 {q: 2 精确 / 1 模糊 / 0 未命中, alt: 命中的词}
+  function matchToken(e, alts) {
+    var i, j;
+    for (i = 0; i < alts.length; i++) {
+      if (e.hay.indexOf(alts[i]) !== -1) return { q: 2, alt: alts[i] };
+    }
+    for (j = 0; j < alts.length; j++) {
+      var t = alts[j];
+      if (t.length < 4 || /[\u4e00-\u9fa5]/.test(t)) continue;
+      var maxD = t.length <= 5 ? 1 : 2, words = e.words;
+      for (var w = 0; w < words.length; w++) {
+        var wd = words[w];
+        if (Math.abs(wd.length - t.length) > maxD) continue;
+        if (levBound(wd, t, maxD) <= maxD) return { q: 1, alt: t };
+      }
+    }
+    return { q: 0, alt: '' };
+  }
   function search(q) {
     var tokens = q.toLowerCase().split(/\s+/).filter(Boolean);
     if (!tokens.length) return [];
-    var ql = q.toLowerCase();
-    var first = tokens[0];
-    var hits = [];
+    var tokAlts = tokens.map(tokenAlts);
+    var groups = new Map();
     for (var i = 0; i < index.length; i++) {
       var e = index[i];
       if (curLab && labOf(e) !== curLab) continue;
-      var ok = true;
-      for (var t = 0; t < tokens.length; t++) {
-        if (e.hay.indexOf(tokens[t]) === -1) { ok = false; break; }
+      var gm = 0, em = 0, posB = 0, t, a;
+      for (t = 0; t < tokAlts.length; t++) {
+        var mr = matchToken(e, tokAlts[t]);
+        if (mr.q > 0) {
+          gm++;
+          if (mr.q === 2) em++;
+          var nl = e.nameLower;
+          if (nl.indexOf(mr.alt) === 0) posB = Math.max(posB, 15);
+          else if (nl.indexOf(mr.alt) !== -1) posB = Math.max(posB, 8);
+        }
       }
-      if (!ok) continue;
-      var nl = e.nameLower;
-      var score = 10;
-      if (nl === ql) score = 100;
-      else if (nl.indexOf(first) === 0) score = 50;
-      else if (nl.indexOf(first) !== -1) score = 30;
-      // 官方渠道加权：provider 与关键词相关时优先
-      if ((e.provider + ' ' + e.providerName).toLowerCase().indexOf(first) !== -1) score += 15;
-      hits.push([score, e]);
-    }
-    var groups = new Map();
-    hits.forEach(function (h) {
-      var score = h[0], e = h[1];
-      if (!groups.has(e.norm)) groups.set(e.norm, { entries: [], best: 0, latest: '' });
+      if (gm === 0) continue;
+      var offB = 0, ph = (e.provider + ' ' + e.providerName).toLowerCase();
+      for (t = 0; t < tokAlts.length && !offB; t++) {
+        for (a = 0; a < tokAlts[t].length; a++) {
+          if (ph.indexOf(tokAlts[t][a]) !== -1) { offB = 15; break; }
+        }
+      }
+      var score = gm * 100 + em * 20 + posB + offB;
       var g = groups.get(e.norm);
+      if (!g) { g = { entries: [], best: -1, latest: '' }; groups.set(e.norm, g); }
       g.entries.push([score, e]);
       if (score > g.best) g.best = score;
       var rd = e.m.release_date || '';
       if (rd > g.latest) g.latest = rd;
-    });
+    }
     var arr = Array.from(groups.values());
     arr.sort(function (a, b) {
       return (b.best - a.best) ||
@@ -348,7 +416,18 @@
       return;
     }
     if (!lastGroups.length) {
-      $results.innerHTML = '<p class="md-empty">没找到「' + esc(lastQuery) + '」，换个关键词试试</p>';
+      var sugHtml = '';
+      var qt = lastQuery.trim();
+      if (qt && qt.indexOf('lab:') !== 0) {
+        var qtoks = qt.split(/\s+/).filter(Boolean);
+        if (qtoks.length > 1) {
+          var short = qtoks.slice(0, -1).join(' ');
+          sugHtml = '<div style="text-align:center;margin-top:.9rem;"><button class="md-empty-sug" data-retry="' + esc(short) + '">试试只搜「' + esc(short) + '」</button></div>';
+        } else {
+          sugHtml = '<div style="text-align:center;margin-top:.9rem;font-size:.8rem;color:#9aa0a6">也可以点选上方 lab 按厂商浏览</div>';
+        }
+      }
+      $results.innerHTML = '<p class="md-empty">没找到「' + esc(lastQuery) + '」，换个关键词试试</p>' + sugHtml;
       return;
     }
     var totalPages = Math.max(1, Math.ceil(lastGroups.length / PAGE_SIZE));
@@ -439,6 +518,12 @@
   });
   $results.addEventListener('click', function (ev) {
     if (ev.target.closest && ev.target.closest('[data-clearlab]')) { setLab(''); return; }
+    var retry = ev.target.closest ? ev.target.closest('[data-retry]') : null;
+    if (retry) {
+      $input.value = retry.getAttribute('data-retry');
+      render(search($input.value), $input.value);
+      return;
+    }
     var row = ev.target.closest ? ev.target.closest('.md-tl-pill') : null;
     if (!row || curTab !== 'timeline') return;
     var norm = row.getAttribute('data-norm');
