@@ -17,11 +17,15 @@
     <div class="models-hero">
       <div class="hero-badge">🔍 模型参数</div>
       <h1 class="models-title">模型参数<span class="title-accent">查询</span></h1>
-      <p class="models-sub">输入模型名称，查上下文窗口、最大输出、价格与能力。<br>数据来自 <a href="https://models.dev" target="_blank" rel="noopener">models.dev</a>，每日自动更新（<span id="data-date">—</span>）。图标来自 <a href="https://icons.lobehub.com" target="_blank" rel="noopener">LobeHub Icons</a>。</p>
+      <p class="models-sub">输入模型名称，查上下文窗口、最大输出、价格与能力。<br>数据来自 <a href="https://models.dev" target="_blank" rel="noopener">models.dev</a>，每日自动更新（<span id="data-date">—</span>）。图标来自 <a href="https://models.dev" target="_blank" rel="noopener">models.dev</a> 与 <a href="https://icons.lobehub.com" target="_blank" rel="noopener">LobeHub Icons</a>。</p>
     </div>
     <div class="search-box">
       <input id="model-search" type="text" placeholder="比如：claude sonnet、gpt-5、deepseek、qwen…" autocomplete="off" spellcheck="false">
       <div class="search-meta"><span id="data-status">正在加载模型库…</span></div>
+    </div>
+    <div class="md-tabs">
+      <button class="md-tab md-tab-active" data-tab="search">搜索</button>
+      <button class="md-tab" data-tab="timeline">新模型时间线</button>
     </div>
     <div id="results" class="results">
       <p class="md-empty">在上方输入关键词开始搜索</p>
@@ -30,7 +34,7 @@
 </main>
 <footer class="site-footer">
   <div class="container">
-    <span>数据 <a href="https://models.dev" target="_blank" rel="noopener">models.dev</a>（每日更新） · 图标 <a href="https://icons.lobehub.com" target="_blank" rel="noopener">LobeHub Icons</a>（各品牌商标归其所有者，仅作识别性使用）</span>
+    <span>数据 <a href="https://models.dev" target="_blank" rel="noopener">models.dev</a>（每日更新） · 图标 <a href="https://models.dev" target="_blank" rel="noopener">models.dev</a> / <a href="https://icons.lobehub.com" target="_blank" rel="noopener">LobeHub Icons</a>（各品牌商标归其所有者，仅作识别性使用）</span>
   </div>
 </footer>
 <script src="wave.js"></script>
