@@ -162,7 +162,7 @@
     return name.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, '');
   }
   function iconFor(pid) {
-    return ICON_MAP[pid] || 'icons/_default.svg';
+    return ICON_MAP[pid] || 'icons/pomelo.svg';
   }
   function imgTag(pid, cls) {
     return '<img class="' + cls + '" src="' + esc(iconFor(pid)) +
