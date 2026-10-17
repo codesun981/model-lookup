@@ -91,7 +91,7 @@
         var m = models[mid];
         var name = m.name || mid;
         index.push({
-          name: name, id: mid, provider: pid, providerName: pname,
+          name: name, id: mid, provider: pid, providerName: pname, doc: prov.doc || '',
           hay: (name + ' ' + mid).toLowerCase(),
           nameLower: name.toLowerCase(),
           norm: normName(name),
@@ -147,13 +147,17 @@
 
   function badges(m) {
     var b = [];
-    if (m.tool_call) b.push('Tool Call');
-    if (m.reasoning) b.push('推理');
-    if (m.attachment) b.push('附件');
-    if (m.structured_output) b.push('结构化输出');
-    if (m.open_weights) b.push('开源权重');
-    return b.map(function (x) { return '<span class="md-badge">' + esc(x) + '</span>'; }).join('');
+    if (m.status === 'deprecated') b.push(['已废弃', 'md-badge-danger']);
+    else if (m.status === 'beta') b.push(['Beta', 'md-badge-warn']);
+    else if (m.status === 'alpha') b.push(['Alpha', 'md-badge-warn']);
+    if (m.tool_call) b.push(['Tool Call', '']);
+    if (m.reasoning) b.push(['推理', '']);
+    if (m.attachment) b.push(['附件', '']);
+    if (m.structured_output) b.push(['结构化输出', '']);
+    if (m.open_weights) b.push(['开源权重', '']);
+    return b.map(function (x) { return '<span class="md-badge' + (x[1] ? ' ' + x[1] : '') + '">' + esc(x[0]) + '</span>'; }).join('');
   }
+  var DOC_SVG = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
 
   function render(groups, q) {
     lastGroups = groups;
@@ -220,10 +224,17 @@
         if (seen[e.provider]) return '';
         seen[e.provider] = true;
         var c = e.m.cost || {};
+        var cacheHtml = '';
+        if (c.cache_read != null || c.cache_write != null) {
+          var cr = c.cache_read != null ? '读 ' + fmtPrice(c.cache_read) : '';
+          var cw = c.cache_write != null ? '写 ' + fmtPrice(c.cache_write) : '';
+          cacheHtml = ' <span class="md-cache">缓存' + cr + (cr && cw ? ' · ' : '') + cw + '</span>';
+        }
+        var docHtml = e.doc ? ' <a class="md-doc-link" href="' + esc(e.doc) + '" target="_blank" rel="noopener" title="官方文档">' + DOC_SVG + '</a>' : '';
         return '<div class="md-prov-row">' + imgTag(e.provider, 'md-prov-icon') +
-          '<span class="md-prov-name">' + esc(e.providerName) + '</span>' +
+          '<span class="md-prov-name">' + esc(e.providerName) + docHtml + '</span>' +
           '<span class="md-prov-id">' + esc(e.id) + '</span>' +
-          '<span class="md-prov-price">输入 ' + fmtPrice(c.input) + ' / 输出 ' + fmtPrice(c.output) + ' <em>$/1M tokens</em></span></div>';
+          '<span class="md-prov-price">输入 ' + fmtPrice(c.input) + ' / 输出 ' + fmtPrice(c.output) + ' <em>$/1M tokens</em>' + cacheHtml + '</span></div>';
       }).join('');
       return '<article class="md-card">' +
         '<div class="md-card-head">' + imgTagTitle(canon) +
