@@ -1,0 +1,30 @@
+name: Update models data
+
+on:
+  schedule:
+    # 每天 00:00 UTC = 08:00 CST
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch latest data from models.dev
+        run: |
+          curl -sL --retry 3 --max-time 180 https://models.dev/api.json -o /tmp/api.json
+          python3 scripts/update_data.py /tmp/api.json
+
+      - name: Commit and push if changed
+        run: |
+          git diff --quiet -- data/ && echo "no changes, skip" && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/models.json data/meta.json
+          git commit -m "chore: update models data $(date -u +%Y-%m-%d)"
+          git push
