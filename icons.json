@@ -90,5 +90,7 @@
  "io-net": "icons/ionet.svg",
  "arcee": "icons/arcee-color.svg",
  "digitalocean": "icons/digitalocean.svg",
- "alibaba-cn": "icons/alibaba-color.svg"
+ "alibaba-cn": "icons/alibaba-color.svg",
+ "302ai": "icons/ai302-color.svg",
+ "kilo": "icons/kilocode.svg"
 }
