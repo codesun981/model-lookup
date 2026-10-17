@@ -54,6 +54,26 @@
     return '<img class="' + cls + '" src="' + esc(iconFor(pid)) +
       '" alt="" loading="lazy" onerror="this.style.display=\'none\'">';
   }
+  // 卡片标题图标：取模型厂商（模型 id 的 vendor 前缀，如 anthropic/claude-x -> anthropic），
+  // 而不是分组内排第一的渠道；厂商无图标时回退到渠道图标
+  var VENDOR_ALIAS = {mistralai: 'mistral', 'deepseekai': 'deepseek', zaiorg: 'zai'};
+  function titleIconFor(canon) {
+    var mid = canon.id || '';
+    var key = mid.indexOf('/') !== -1
+      ? mid.split('/')[0].toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+    key = VENDOR_ALIAS[key] || key;
+    if (key) {
+      if (ICON_MAP[key]) return ICON_MAP[key];
+      for (var pid in ICON_MAP) {
+        if (pid.toLowerCase().replace(/[^a-z0-9]/g, '') === key) return ICON_MAP[pid];
+      }
+    }
+    return iconFor(canon.provider);
+  }
+  function imgTagTitle(canon) {
+    return '<img class="md-card-icon" src="' + esc(titleIconFor(canon)) +
+      '" alt="" loading="lazy" onerror="this.style.display=\'none\'">';
+  }
 
   function buildIndex(data) {
     index = [];
@@ -200,7 +220,7 @@
           '<span class="md-prov-price">输入 ' + fmtPrice(c.input) + ' / 输出 ' + fmtPrice(c.output) + ' <em>$/1M tokens</em></span></div>';
       }).join('');
       return '<article class="md-card">' +
-        '<div class="md-card-head">' + imgTag(canon.provider, 'md-card-icon') +
+        '<div class="md-card-head">' + imgTagTitle(canon) +
         '<h3 class="md-card-title">' + esc(canon.name) + '</h3></div>' +
         (m.description ? '<p class="md-desc">' + esc(m.description) + '</p>' : '') +
         '<div class="md-stat-grid">' +
